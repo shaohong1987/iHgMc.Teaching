@@ -6,9 +6,9 @@ using System.Web.Mvc;
 
 namespace Web.Controllers
 {
-    public class DefaultController : Controller
+    public class ErrorController : Controller
     {
-        // GET: Default
+        // GET: Error
         public ActionResult Index()
         {
             return View();
