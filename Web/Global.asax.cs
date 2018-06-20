@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
-using System.Web.Security;
-using System.Web.SessionState;
 using System.Web.Http;
+using log4net;
+using Web.Helper;
 
 namespace Web
 {
@@ -14,10 +13,37 @@ namespace Web
     {
         void Application_Start(object sender, EventArgs e)
         {
-            // 在应用程序启动时运行的代码
+            log4net.Config.XmlConfigurator.Configure();
             AreaRegistration.RegisterAllAreas();
+            
             GlobalConfiguration.Configure(WebApiConfig.Register);
-            RouteConfig.RegisterRoutes(RouteTable.Routes);            
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+
+            #region 日志
+            ThreadPool.QueueUserWorkItem(o =>
+            {
+                while (true)
+                {
+                    if (HgMc.LogQueue.Count > 0)
+                    {
+                        var log = HgMc.LogQueue.Dequeue();
+                        if (log != null)
+                        {
+                            var logger = LogManager.GetLogger(log.TypeName);
+                            logger.Error(log.Content);
+                        }
+                        else
+                        {
+                            Thread.Sleep(HgMc.LogHandInterval);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(HgMc.LogHandInterval);
+                    }
+                }
+            });
+            #endregion
         }
     }
 }
